@@ -82,4 +82,4 @@ Author Information
 ------------------
 
 Mikhail Klimov
-git: mikhailklimov1
+git: git@github.com:mikhailklimov1/clear_metadata.git
