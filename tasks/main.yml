@@ -1,0 +1,92 @@
+---
+# tasks file for clear_metadata
+
+- name: Check if cluster_name and domain_name vars ARE NOT defined in a play
+  debug: 
+    msg: |
+        You should define vars cluster_name and domain_name
+        It is a mandatory requirement
+        Example:
+        cluster_name: openshift
+        domain_name: example.com
+  when: cluster_name is not defined and domain_name is not defined
+
+- name: Set OC url
+  set_fact:
+    api_url: "https://api.{{ cluster_name }}.{{ domain_name }}:6443"
+
+- name: Authentication attempt
+  k8s_auth:
+    validate_certs: false
+    username: kubeadmin
+    password: "{{ lookup('file', '{{ cluster_name }}/auth/kubeadmin-password') }}"
+    host: "{{ api_url }}"
+  register: auth_params
+
+- name: Set API token
+  set_fact:
+    cluster_token: "{{ auth_params.k8s_auth.api_key }}"
+
+- name: Create path
+  file:
+    path: "{{ cluster_name }}/backup"
+    state: directory
+    force: true
+    recurse: true
+
+- block:
+  - name: Register "oc get {{ entity_kind }}" (namespace IS NOT defined)
+    kubernetes.core.k8s_info:
+      validate_certs: false
+      api_key: "{{ cluster_token }}"
+      host: "{{ api_url }}"
+      api_version: "{{ api_version_str }}"
+      kind: "{{ entity_kind }}"
+      name: "{{ entity_name }}"
+    register: req_dictionary
+#  - name: Debug dictionary {{ entity_kind }}
+#    debug:
+#      msg: "{{ req_dictionary }}"
+  - name: Set dictionary {{ entity_kind }}
+    set_fact:
+      api_req: "{{ req_dictionary['resources'][0] }}"
+  - name: Copy data to BU file {{ entity_kind }}
+    copy:
+      content: |
+              {% for i in tmp_fields %}
+              {% if api_req.metadata[i] is defined %}
+              {% set gettext = api_req.metadata.pop(i) %}
+              {% endif %}
+              {% endfor %}
+              {{ api_req | to_nice_yaml(indent=2) }}
+      dest: "{{ cluster_name }}/backup/{{ output_file }}"
+  when: entity_namespace is not defined
+
+- block:
+  - name: Register "oc get {{ entity_kind }}" (namespace is defined)
+    kubernetes.core.k8s_info:
+      validate_certs: false
+      api_key: "{{ cluster_token }}"
+      host: "{{ api_url }}"
+      api_version: "{{ api_version_str }}"
+      kind: "{{ entity_kind }}"
+      name: "{{ entity_name }}"
+      namespace: "{{ entity_namespace }}"
+    register: req_dictionary_ns
+#  - name: Debug dictionary {{ entity_kind }}
+#    debug:
+#      msg: "{{ req_dictionary_ns }}"
+  - name: Set dictionary {{ entity_kind }}
+    set_fact:
+      api_req: "{{ req_dictionary_ns['resources'][0] }}"
+  - name: Copy data to BU file {{ entity_kind }}
+    copy:
+      content: |
+              {% for i in tmp_fields %}
+              {% if api_req.metadata[i] is defined %}
+              {% set gettext = api_req.metadata.pop(i) %}
+              {% endif %}
+              {% endfor %}
+              {{ api_req | to_nice_yaml(indent=2) }}
+      dest: "{{ cluster_name }}/backup/{{ output_file }}"
+  when: entity_namespace is defined

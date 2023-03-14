@@ -1,0 +1,43 @@
+---
+# defaults file for clear_metadata
+output_file: output_file.yaml
+api_version_str: v1
+entity_kind: OAuth
+entity_name: cluster
+
+req_dictionary:
+  resources:
+  - apiVersion: config.openshift.io/v1
+    kind: OAuth
+    metadata:
+      annotations: annotations_to_delete
+      creationTimestamp: creationtimestamp_to_delete
+      managedFields: managedFields_to_delete
+      resourceVersion: resourceVersion_to_delete
+      uid: uid_to_delete
+      generation: 2
+      name: cluster
+    spec:
+      identityProviders:
+      - htpasswd:
+          fileData:
+            name: localusers
+        mappingMethod: claim
+        name: htpasswd
+        type: HTPasswd
+
+req_dictionary_ns:
+  resources:
+  - apiVersion: v1
+    data:
+      htpasswd: "mypassword"
+    kind: Secret
+    metadata:
+      annotations: annotations_to_delete
+      creationTimestamp: creationtimestamp_to_delete
+      managedFields: managedFields_to_delete
+      name: localusers
+      namespace: openshift-config
+      resourceVersion: resourceVersion_to_delete
+      uid: uid_to_delete
+    type: Opaque

@@ -1,0 +1,8 @@
+---
+# vars file for clear_metadata
+tmp_fields:
+  - annotations
+  - managedFields
+  - creationTimestamp
+  - resourceVersion
+  - uid
