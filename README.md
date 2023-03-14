@@ -17,9 +17,13 @@ Role Variables
 This role reads and stores data from ansible folder. Each cluster to backup should have it's own folder within ansible folder with a required data. 'cluster-name' should have a file with  kubeadmin-password and  kubeconfig files. Example:
 
 ├── cluster_name
+
 │   └── auth
+
 │       ├── kubeadmin-password
+
 │       └── kubeconfig
+
 
 
 Dependencies
