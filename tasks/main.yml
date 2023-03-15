@@ -11,6 +11,12 @@
         domain_name: example.com
   debug: 
     msg: "{{ message.split('\n') }}"
+#    msg: |
+#        You should define vars cluster_name and domain_name
+#        It is a mandatory requirement
+#        Example:
+#        cluster_name: openshift
+#        domain_name: example.com
   when: cluster_name is not defined and domain_name is not defined
 
 - name: Set OC url
