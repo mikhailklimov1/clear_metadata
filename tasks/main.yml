@@ -2,13 +2,15 @@
 # tasks file for clear_metadata
 
 - name: Check if cluster_name and domain_name vars ARE NOT defined in a play
-  debug: 
-    msg: |
+  vars:
+    message: |
         You should define vars cluster_name and domain_name
         It is a mandatory requirement
         Example:
         cluster_name: openshift
         domain_name: example.com
+  debug: 
+    msg: "{{ message.split('\n') }}"
   when: cluster_name is not defined and domain_name is not defined
 
 - name: Set OC url
